@@ -20,7 +20,6 @@ class Listing(models.Model):
     image = models.CharField(max_length=1500)
     startingPrice = models.FloatField()
     sold = models.BooleanField(default=False)
-    watchlist = models.ManyToManyField(User, on_delete=models.CASCADE, related_name="watchlist")
 
     def __str__(self):
         return self.title
