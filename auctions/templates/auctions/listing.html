@@ -3,6 +3,14 @@
 {% block body %}
 <div>
     <h2>{{ listing.title }}</h2>
+    <form action="{% url 'listing' id=listing.id %}" method="POST">
+        {% csrf_token %}
+        {% if not watchlist %}
+        <button>Add</button>
+        {% else %}
+        <button>Remove</button>
+        {% endif %}
+    </form>
     <p>Category: {{ listing.category }}</p>
     <p>Description: {{ listing.description }}</p>
     <p>Starting Price: ${{ listing.startingPrice }}</p>

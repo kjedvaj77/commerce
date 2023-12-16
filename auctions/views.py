@@ -32,9 +32,18 @@ def index(request):
 
 def listing(request, id):
     listing = Listing.objects.get(id=id)
-    return render(request, "auctions/listing.html", {
-        "listing": listing
-    })
+    if request.method == "POST":
+        if request.user not in listing.watchlist.all():
+            listing.watchlist.add(request.user)
+        else:
+            listing.watchlist.remove(request.user)
+        return redirect(reverse("listing", args=[id]))
+    else:
+        watchlist = request.user in listing.watchlist.all()
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "watchlist": watchlist
+        })
 
 
 def new_listing(request):
