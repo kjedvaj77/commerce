@@ -1,19 +1,33 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<div>
-    <h2>{{ listing.title }}</h2>
-    <form action="{% url 'listing' id=listing.id %}" method="POST">
-        {% csrf_token %}
-        {% if not watchlist %}
-        <button>Add</button>
+<div style="display: flex;">
+    <div>
+        <h2>{{ listing.title }}</h2>
+        <form action="{% url 'listing' id=listing.id %}" method="POST">
+            {% csrf_token %}
+            {% if not watchlist %}
+            <button>Add</button>
+            {% else %}
+            <button>Remove</button>
+            {% endif %}
+        </form>
+        <p>Category: {{ listing.category }}</p>
+        <p>Description: {{ listing.description }}</p>
+        {% if bids %}
+        <p>Starting Price: ${{ bids.amount }}</p>
         {% else %}
-        <button>Remove</button>
+        <p>Starting Price: ${{ listing.startingPrice }}</p>
         {% endif %}
-    </form>
-    <p>Category: {{ listing.category }}</p>
-    <p>Description: {{ listing.description }}</p>
-    <p>Starting Price: ${{ listing.startingPrice }}</p>
-    <img src="{{ listing.image }}" alt="{{ listing.title }}">
+        <img src="{{ listing.image }}" alt="{{ listing.title }}">
+    </div>
+    <div>
+        <h2>Place Bid on {{ listing.title }}</h2>
+        <form method="post" action="{% url 'placebid' id=listing.id %}">
+            {% csrf_token %}
+            {{ bid_form }}
+            <button type="submit">Place Bid</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

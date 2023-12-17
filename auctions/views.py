@@ -3,18 +3,34 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django import forms
 
-from .models import User, Listing, Category
+from .models import User, Listing, Category, Bid
+from .forms import NewListing, BidForm
 
-class NewListing(forms.Form):
-    category_list = Category.objects.all()
-    category_choices = [(category.name, category.name) for category in category_list]
-    title = forms.CharField(label="Title")
-    description = forms.CharField(label="Description")
-    image = forms.CharField(label="Image URL")
-    price = forms.FloatField(label="price")
-    option_field = forms.ChoiceField(choices=category_choices, label="Choose a Category")
+
+def place_bid(request, id):
+    if request.method == "POST":
+        listing = Listing.objects.get(id=id)
+        bids = Bid.objects.filter(auction=listing).order_by('-amount')
+        bid_form = BidForm(request.POST)
+        if not bid_form.is_valid():
+            return redirect(reverse("listing", args=[id]))
+        else:
+            bid_amount = bid_form.cleaned_data['amount']
+            if not bids and bid_amount > listing.startingPrice:
+                bid = Bid(bidder=request.user, auction=listing, amount=bid_amount)
+                bid.save()
+                return redirect(reverse("listing", args=[id]))
+            elif bids and bid_amount > bids[0].amount:
+                bid = Bid(bidder=request.user, auction=listing, amount=bid_amount)
+                bid.save()
+                return redirect(reverse("listing", args=[id]))
+            else:
+                return redirect(reverse("listing", args=[id]))
+    else:
+        return redirect(reverse("listing", args=[id]))
+
+
 
 
 def index(request):
@@ -32,6 +48,7 @@ def index(request):
 
 def listing(request, id):
     listing = Listing.objects.get(id=id)
+    bids = Bid.objects.filter(auction=listing).order_by('-amount')
     if request.method == "POST":
         if request.user not in listing.watchlist.all():
             listing.watchlist.add(request.user)
@@ -42,7 +59,9 @@ def listing(request, id):
         watchlist = request.user in listing.watchlist.all()
         return render(request, "auctions/listing.html", {
             "listing": listing,
-            "watchlist": watchlist
+            "watchlist": watchlist,
+            "bid_form": BidForm,
+            "bids": bids[0]
         })
 
 
