@@ -7,9 +7,9 @@
         <form action="{% url 'listing' id=listing.id %}" method="POST">
             {% csrf_token %}
             {% if not watchlist %}
-            <button>Add</button>
+            <button>Add to watchlist</button>
             {% else %}
-            <button>Remove</button>
+            <button>Remove from watchlist</button>
             {% endif %}
         </form>
         <p>Category: {{ listing.category }}</p>
@@ -19,7 +19,7 @@
         {% else %}
         <p>Starting Price: ${{ listing.startingPrice }}</p>
         {% endif %}
-        <img src="{{ listing.image }}" alt="{{ listing.title }}">
+        <img src="{{ listing.image }}" style="height: 400px; width: 400px;" alt="{{ listing.title }}">
     </div>
     <div>
         <h2>Place Bid on {{ listing.title }}</h2>

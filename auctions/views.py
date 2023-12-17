@@ -3,12 +3,15 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 from .models import User, Listing, Category, Bid
 from .forms import NewListing, BidForm
 
 
 def place_bid(request, id):
+    if not request.user.is_authenticated:
+        return redirect(reverse('login'))
     if request.method == "POST":
         listing = Listing.objects.get(id=id)
         bids = Bid.objects.filter(auction=listing).order_by('-amount')
@@ -50,6 +53,8 @@ def listing(request, id):
     listing = Listing.objects.get(id=id)
     bids = Bid.objects.filter(auction=listing).order_by('-amount')
     if request.method == "POST":
+        if not request.user.is_authenticated:
+            return redirect(reverse('login'))
         if request.user not in listing.watchlist.all():
             listing.watchlist.add(request.user)
         else:
@@ -57,11 +62,16 @@ def listing(request, id):
         return redirect(reverse("listing", args=[id]))
     else:
         watchlist = request.user in listing.watchlist.all()
+        if bids:
+            highestbid = bids[0]
+        else:
+            highestbid = None
+
         return render(request, "auctions/listing.html", {
             "listing": listing,
             "watchlist": watchlist,
             "bid_form": BidForm,
-            "bids": bids[0]
+            "bids": highestbid
         })
 
 
